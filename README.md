@@ -97,6 +97,12 @@ Artemis Qt is specifically optimized for handheld gaming devices like the Steam 
 
 > **Note:** The Quick Menu provides easy access to clipboard sync, server commands, and other streaming controls during your session.
 
+### macOS Command and Control Swap
+
+In **Settings → Input Settings**, enable **Swap Command and Control keys while streaming** to send Command as Ctrl and Control as Windows/Super to a Windows or Linux host. Option remains Alt. The setting is off by default and is available only on macOS clients.
+
+Enable **Capture system keyboard shortcuts** too. The swap applies only while the stream has keyboard capture; choose **always** to use it in windowed mode. Artemis's own shortcuts are matched before the swap, and other Mac apps keep their existing keyboard behavior. Any macOS modifier-key remapping still applies before Artemis receives the keys.
+
 ## 📥 Downloads
 All downloads are available in [Releases](https://github.com/wjbeckett/artemis/releases) 
 

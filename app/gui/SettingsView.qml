@@ -1558,6 +1558,24 @@ Flickable {
                 }
 
                 CheckBox {
+                    id: swapCmdCtrlCheck
+                    visible: Qt.platform.os === "osx"
+                    hoverEnabled: true
+                    width: parent.width
+                    text: qsTr("Swap Command and Control keys while streaming")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.swapCmdCtrl
+                    onCheckedChanged: {
+                        StreamingPreferences.swapCmdCtrl = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 10000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Send Command as Ctrl and Control as Windows/Super to the host. Option remains Alt. This applies only while system keyboard shortcuts are captured; select 'always' above to use it in windowed mode. Artemis's own shortcuts are unchanged.")
+                }
+
+                CheckBox {
                     id: absoluteTouchCheck
                     hoverEnabled: true
                     width: parent.width
