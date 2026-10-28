@@ -1,8 +1,6 @@
-# Command/Control mapping regression test
+# macOS modifier mapping tests
 
-This test uses the same SDL mapping helper as the streaming keyboard handler.
-It needs a C++11 compiler and SDL2 headers, but no display, running stream, or Qt.
-From the repository root on Linux or macOS:
+From the repository root on Linux or macOS, with SDL2 development headers:
 
 ```sh
 c++ -std=c++11 -Wall -Wextra -Werror -Iapp $(pkg-config --cflags sdl2) \
@@ -10,31 +8,47 @@ c++ -std=c++11 -Wall -Wextra -Werror -Iapp $(pkg-config --cflags sdl2) \
 /tmp/artemis-keyboardmapping-test
 ```
 
-It covers left/right modifier keys on press and release, copy/paste and
-Windows/Super shortcut combinations, all 65,536 modifier bit patterns, and all
-SDL scancodes. Alt/Option, Shift, lock keys, and ordinary keys must be preserved.
+The test covers all six layouts, all 65,536 modifier flag patterns for each
+layout, every SDL scancode, left/right modifier presses and releases, and the
+Windows shortcut preset. Shift, lock flags and ordinary keys stay unchanged.
+It also verifies exchanging occupied targets and rejecting malformed mappings.
 
-## macOS streaming checks
+The preferences test uses Qt Core, QML and Test development packages:
 
-These require an actual Mac client and a Windows or Linux host:
+```sh
+mkdir -p build/modifierpreferences
+cd build/modifierpreferences
+qmake6 ../../tests/input/modifierpreferences.pro
+make
+./modifierpreferences-test
+```
 
-1. With a fresh preferences file, confirm the swap is off. Enable it in Input
-   Settings, restart Artemis, and confirm it remains checked.
-2. Set Capture system keyboard shortcuts to always, start a stream, and confirm
-   Command+C/V acts as Ctrl+C/V, Control+V acts as Windows/Super+V, and
-   Control+Shift+S acts as Windows/Super+Shift+S where the host binds that shortcut.
-3. Test both left and right Command/Control, including holding both together.
-   Use a host key-event viewer on Linux if the desktop uses different shortcuts.
-4. Check Option+Tab cycles host windows and releasing Option selects the window.
-   Confirm Artemis's existing Control+Option+Shift shortcuts still work.
+It exercises the real preference implementation with temporary INI settings:
+defaults, presets, QML-facing property writes and change notifications, saved
+layouts, migration from `swapcmdctrl`, and invalid saved values. Only the
+Wayland environment query is stubbed; no desktop or host is required.
+
+## Live macOS streaming checklist
+
+These checks require an actual Mac client and Windows/Linux host:
+
+1. Restore physical Control/Option/Command in macOS Modifier Keys. Disable any
+   third-party remaps for Artemis during this test. macOS remapping happens
+   before Artemis receives input and cannot be undone by this setting.
+2. Check the three selectors default to Ctrl, Alt, Windows/Super. Try all three
+   preset buttons and individual selectors; selecting an occupied target must
+   exchange the assignments and update both selectors. Restart Artemis and
+   confirm the layout persists. Changes take effect on the next stream.
+3. Choose Windows shortcut layout and Capture system keyboard shortcuts: always.
+   Start a stream. Check Control+C/V, Option+V, Option+Shift+S, Command+Tab and
+   Command+F4 against the Windows host. Releasing Command must finish Alt+Tab.
+   On Linux, use the desktop's bindings or a key-event viewer.
+4. Test both left and right modifiers and chords with several modifiers held.
+   Artemis's existing Control+Option+Shift shortcuts must still work.
 5. Hold a mapped modifier while switching focus, toggling fullscreen, or
-   ungrabbing input. Return to the stream and check no host modifier stays down.
-6. Disable capture, or choose fullscreen-only capture and use a windowed stream.
-   Confirm the swap is inactive and local macOS shortcuts retain their behavior.
-7. Disable the swap and check the original key mapping returns. On Windows and
-   Linux clients, confirm the checkbox is hidden and input behavior is unchanged,
-   even if the saved `swapcmdctrl` preference is true.
-
-macOS modifier remaps are applied before Artemis sees input. For example, a
-physical Control key globally remapped to Command is received as Command and
-then sent as Ctrl with this setting enabled.
+   ungrabbing. Return to the stream and check no host modifier remains held.
+6. With capture off, or fullscreen-only capture in windowed mode, the original
+   mapping must be used. Other Mac apps retain their existing mappings.
+7. Restore Default and reconnect to verify the original behavior. On Windows
+   and Linux clients, the settings must be hidden and input must be unchanged
+   even if non-default modifier preferences exist.

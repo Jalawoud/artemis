@@ -1,40 +1,31 @@
 #pragma once
 
 #include "SDL_compat.h"
+#include "settings/modifiermapping.h"
 
-// Remap both the modifier key itself and the modifier state on other keys.
-// Keep left/right modifiers distinct and leave all other modifiers unchanged.
-inline void swapCommandAndControl(SDL_Keysym& keysym)
+// Map the key and its chord's modifier state from the same original snapshot.
+// Preserve left/right sides, Shift, lock flags, and all non-modifier scancodes.
+inline void remapModifiers(SDL_Keysym& keysym, const ModifierMapping& mapping)
 {
-    switch (keysym.scancode) {
-    case SDL_SCANCODE_LCTRL:
-        keysym.scancode = SDL_SCANCODE_LGUI;
-        break;
-    case SDL_SCANCODE_RCTRL:
-        keysym.scancode = SDL_SCANCODE_RGUI;
-        break;
-    case SDL_SCANCODE_LGUI:
-        keysym.scancode = SDL_SCANCODE_LCTRL;
-        break;
-    case SDL_SCANCODE_RGUI:
-        keysym.scancode = SDL_SCANCODE_RCTRL;
-        break;
-    default:
-        break;
+    const SDL_Scancode codes[ModifierMapping::Count][2] = {
+        {SDL_SCANCODE_LCTRL, SDL_SCANCODE_RCTRL},
+        {SDL_SCANCODE_LALT, SDL_SCANCODE_RALT},
+        {SDL_SCANCODE_LGUI, SDL_SCANCODE_RGUI}
+    };
+    const Uint16 flags[ModifierMapping::Count][2] = {
+        {KMOD_LCTRL, KMOD_RCTRL}, {KMOD_LALT, KMOD_RALT}, {KMOD_LGUI, KMOD_RGUI}
+    };
+    const SDL_Scancode originalCode = keysym.scancode;
+    const Uint16 originalModifiers = keysym.mod;
+    keysym.mod &= ~(KMOD_CTRL | KMOD_ALT | KMOD_GUI);
+    for (int source = 0; source < ModifierMapping::Count; source++) {
+        for (int side = 0; side < 2; side++) {
+            if (originalCode == codes[source][side]) {
+                keysym.scancode = codes[mapping.targets[source]][side];
+            }
+            if (originalModifiers & flags[source][side]) {
+                keysym.mod |= flags[mapping.targets[source]][side];
+            }
+        }
     }
-
-    Uint16 modifiers = keysym.mod & ~(KMOD_CTRL | KMOD_GUI);
-    if (keysym.mod & KMOD_LCTRL) {
-        modifiers |= KMOD_LGUI;
-    }
-    if (keysym.mod & KMOD_RCTRL) {
-        modifiers |= KMOD_RGUI;
-    }
-    if (keysym.mod & KMOD_LGUI) {
-        modifiers |= KMOD_LCTRL;
-    }
-    if (keysym.mod & KMOD_RGUI) {
-        modifiers |= KMOD_RCTRL;
-    }
-    keysym.mod = modifiers;
 }

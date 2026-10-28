@@ -1557,22 +1557,64 @@ Flickable {
                     }
                 }
 
-                CheckBox {
-                    id: swapCmdCtrlCheck
+                Column {
                     visible: Qt.platform.os === "osx"
-                    hoverEnabled: true
                     width: parent.width
-                    text: qsTr("Swap Command and Control keys while streaming")
-                    font.pointSize: 12
-                    checked: StreamingPreferences.swapCmdCtrl
-                    onCheckedChanged: {
-                        StreamingPreferences.swapCmdCtrl = checked
+                    spacing: 5
+
+                    Label {
+                        text: qsTr("Mac modifier keys while streaming")
+                        font.pointSize: 12
                     }
 
-                    ToolTip.delay: 1000
-                    ToolTip.timeout: 10000
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("Send Command as Ctrl and Control as Windows/Super to the host. Option remains Alt. This applies only while system keyboard shortcuts are captured; select 'always' above to use it in windowed mode. Artemis's own shortcuts are unchanged.")
+                    Row {
+                        spacing: 5
+                        Button {
+                            text: qsTr("Default")
+                            onClicked: StreamingPreferences.setModifierPreset(0)
+                        }
+                        Button {
+                            text: qsTr("Swap Cmd / Ctrl")
+                            onClicked: StreamingPreferences.setModifierPreset(1)
+                        }
+                    }
+                    Button {
+                        text: qsTr("Windows shortcut layout")
+                        onClicked: StreamingPreferences.setModifierPreset(2)
+                    }
+
+                    Repeater {
+                        model: [qsTr("Control sends"), qsTr("Option sends"), qsTr("Command sends")]
+                        delegate: Row {
+                            id: modifierRow
+                            property int modifierIndex: index
+                            spacing: 5
+                            Label {
+                                text: modelData
+                                width: 120
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                            AutoResizingComboBox {
+                                maximumWidth: modifierRow.parent.width - 125
+                                Component.onCompleted: recalculateWidth()
+                                model: [qsTr("Ctrl"), qsTr("Alt"), qsTr("Windows / Super")]
+                                currentIndex: modifierRow.modifierIndex === 0 ? StreamingPreferences.controlModifier :
+                                              modifierRow.modifierIndex === 1 ? StreamingPreferences.optionModifier :
+                                                            StreamingPreferences.commandModifier
+                                onActivated: {
+                                    if (modifierRow.modifierIndex === 0) StreamingPreferences.controlModifier = currentIndex
+                                    else if (modifierRow.modifierIndex === 1) StreamingPreferences.optionModifier = currentIndex
+                                    else StreamingPreferences.commandModifier = currentIndex
+                                }
+                            }
+                        }
+                    }
+
+                    Label {
+                        width: parent.width
+                        wrapMode: Text.WordWrap
+                        text: qsTr("Changes apply to the next stream, while system keyboard shortcuts are captured. Choose 'always' above for windowed streams. Each host modifier is used once; selecting an assigned target swaps the two mappings. macOS modifier settings apply first. Artemis's own shortcuts are unchanged.")
+                    }
                 }
 
                 CheckBox {

@@ -205,7 +205,7 @@ private:
     bool m_MultiController;
     bool m_GamepadMouse;
     bool m_SwapMouseButtons;
-    bool m_SwapCmdCtrl;
+    ModifierMapping m_ModifierMapping;
     bool m_ReverseScrollDirection;
     bool m_SwapFaceButtons;
 

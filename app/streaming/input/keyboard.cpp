@@ -217,9 +217,9 @@ void SdlInputHandler::handleKeyEvent(SDL_KeyboardEvent* event)
     // Keep Artemis's own shortcuts in client key space. Only remap the copy
     // sent to the host, while system shortcuts are captured by this window.
     SDL_KeyboardEvent remappedEvent;
-    if (m_SwapCmdCtrl && isSystemKeyCaptureActive()) {
+    if (!m_ModifierMapping.isIdentity() && isSystemKeyCaptureActive()) {
         remappedEvent = *event;
-        swapCommandAndControl(remappedEvent.keysym);
+        remapModifiers(remappedEvent.keysym, m_ModifierMapping);
         event = &remappedEvent;
     }
 #endif

@@ -13,7 +13,7 @@ SdlInputHandler::SdlInputHandler(StreamingPreferences& prefs, int streamWidth, i
     : m_MultiController(prefs.multiController),
       m_GamepadMouse(prefs.gamepadMouse),
       m_SwapMouseButtons(prefs.swapMouseButtons),
-      m_SwapCmdCtrl(prefs.swapCmdCtrl),
+      m_ModifierMapping(prefs.modifierMapping),
       m_ReverseScrollDirection(prefs.reverseScrollDirection),
       m_SwapFaceButtons(prefs.swapFaceButtons),
       m_MouseWasInVideoRegion(false),
@@ -340,9 +340,9 @@ void SdlInputHandler::updateKeyboardGrabState()
 
 #if SDL_VERSION_ATLEAST(2, 0, 15)
 #ifdef Q_OS_MACOS
-    // Changing capture changes whether Command/Control are remapped. Release
+    // Changing capture changes whether modifiers are remapped. Release
     // keys using their old host codes before changing the keyboard grab.
-    if (m_SwapCmdCtrl && ((windowFlags & SDL_WINDOW_KEYBOARD_GRABBED) != 0) != shouldGrab) {
+    if (!m_ModifierMapping.isIdentity() && ((windowFlags & SDL_WINDOW_KEYBOARD_GRABBED) != 0) != shouldGrab) {
         raiseAllKeys();
     }
 #endif
